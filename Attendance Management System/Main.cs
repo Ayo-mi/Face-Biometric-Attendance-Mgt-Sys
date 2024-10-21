@@ -174,5 +174,9 @@ namespace Attendance_Management_System
             }
         }
 
+        private void bunifuButton24_Click(object sender, EventArgs e)
+        {
+            new MarkAttendanceForm().ShowDialog(this);
+        }
     }
 }

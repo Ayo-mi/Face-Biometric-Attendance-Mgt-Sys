@@ -139,6 +139,8 @@ namespace Attendance_Management_System.Modal
             FaceRecognition.StopCamera();
             bunifuButton23.Enabled = false;
             bunifuButton24.Enabled = false;
+
+            FaceRecognition.Dispose();
         }
     }
 }

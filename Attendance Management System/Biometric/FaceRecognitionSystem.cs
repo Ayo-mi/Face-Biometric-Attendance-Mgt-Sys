@@ -13,10 +13,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using System.Collections;
+using System.IO.Pipes;
 
 namespace Attendance_Management_System.Biometric
 {
-    internal class FaceRecognitionSystem
+    internal class FaceRecognitionSystem : IDisposable
     {
         private double distance = 1E+19;
 
@@ -228,6 +229,18 @@ namespace Attendance_Management_System.Biometric
                 return null;
             }
             
+        }
+
+        public void Dispose()
+        {
+            camera.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        // Destructor as a safety net, in case Dispose is not called
+        ~FaceRecognitionSystem()
+        {
+            Dispose();
         }
     }
 }
