@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -77,6 +78,22 @@ namespace Attendance_Management_System.Modal
             }
         }
 
+        private void RenameFile(string name)
+        {
+            try
+            {
+                var old = Directory.GetCurrentDirectory() + $"\\Image\\{Id}.jpg";
+                var newName = $"{Id}%%%{name}";
+                var newFile = Directory.GetCurrentDirectory() + $"\\Image\\{newName}.jpg";
+
+                File.Move(old, newFile);
+            }
+            catch (Exception _)
+            {
+
+            }
+        }
+
         private void Add_Employee_Shown(object sender, EventArgs e)
         {
             if (!backgroundWorker1.IsBusy)
@@ -112,9 +129,8 @@ namespace Attendance_Management_System.Modal
                     prompt.Show(this, "Employee account was created successfully",
                        BunifuSnackbar.MessageTypes.Success, 1000, "",
                        BunifuSnackbar.Positions.TopCenter, BunifuSnackbar.Hosts.FormOwner);
-                    //    enrollment.Enrollerr.Clear();
-                    //    enrollment.Start();
-                    //    enrollment.UpdateStatus();
+
+                    RenameFile($"{fname} {lname}");
                 }
                 else
                 {

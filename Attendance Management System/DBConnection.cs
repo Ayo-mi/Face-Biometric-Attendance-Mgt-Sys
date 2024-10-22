@@ -92,7 +92,7 @@ namespace Attendance_Management_System
                 }
                 catch (MySqlException ex)
                 {
-                    //MessageBox.Show(ex.Message, "Error");
+                    MessageBox.Show(ex.Message, "Error");
                 }
             }
             else
@@ -138,7 +138,7 @@ namespace Attendance_Management_System
                 }
                 catch (MySqlException e)
                 {
-                    //MessageBox.Show(e.Message, "Error");
+                    MessageBox.Show(e.Message, "Error");
                     status = false;
                 }
             }

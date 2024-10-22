@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using System.Collections;
 using System.IO.Pipes;
+using Attendance_Management_System.Modal;
 
 namespace Attendance_Management_System.Biometric
 {
@@ -43,6 +44,8 @@ namespace Attendance_Management_System.Biometric
 
         private PictureBox PictureBox_smallFrame;
 
+        public Label PersonName;
+
         private string setPersonName;
 
         public bool isTrained = false;
@@ -53,12 +56,24 @@ namespace Attendance_Management_System.Biometric
 
         private IContainer components = null;
 
+        public MarkAttendanceForm ParentForm {  get; set; }
+
         public FaceRecognitionSystem()
         {
             if (!Directory.Exists(Environment.CurrentDirectory + "\\Image"))
             {
                 Directory.CreateDirectory(Environment.CurrentDirectory + "\\Image");
             }
+        }
+
+        public FaceRecognitionSystem(MarkAttendanceForm form)
+        {
+            if (!Directory.Exists(Environment.CurrentDirectory + "\\Image"))
+            {
+                Directory.CreateDirectory(Environment.CurrentDirectory + "\\Image");
+            }
+
+            ParentForm = form;
         }
 
         public void getPersonName(Control control)
@@ -77,6 +92,16 @@ namespace Attendance_Management_System.Biometric
         {
             PictureBox_Frame = pictureBox_Camera;
             PictureBox_smallFrame = pictureBox_Trained;
+            camera = new Capture();
+            camera.ImageGrabbed += Camera_ImageGrabbed;
+            camera.Start();
+        }
+
+        public void openCamera(PictureBox pictureBox_Camera, Bunifu.UI.WinForms.BunifuPictureBox pictureBox_Trained, ref Label name)
+        {
+            PictureBox_Frame = pictureBox_Camera;
+            PictureBox_smallFrame = pictureBox_Trained;
+            PersonName = name;
             camera = new Capture();
             camera.ImageGrabbed += Camera_ImageGrabbed;
             camera.Start();
@@ -180,55 +205,29 @@ namespace Attendance_Management_System.Biometric
                         PictureBox_smallFrame.Image = trainedFaces[predictionResult.Label].Bitmap;
                         var id = Names[predictionResult.Label].Replace(Environment.CurrentDirectory + "\\Image\\", "").Replace(".jpg", "");
                         //get employee by id
-                        setPersonName = GetEmployee(id);
+                        setPersonName = id.Split('%').Last().Trim(); //GetEmployee(id);
 
                         if (!string.IsNullOrEmpty(setPersonName))
                         {
                             CvInvoke.PutText(Frame, setPersonName, new Point(face.X - 2, face.Y - 2), FontFace.HersheyPlain, 1.0, new Bgr(Color.LimeGreen).MCvScalar);
-
+                            ParentForm.SetName(setPersonName, id.Split('%').First().Trim());
+                            //PersonName.Text = setPersonName;
                         }
-                        else
+                        else{
                             CvInvoke.PutText(Frame, "Unknown", new Point(face.X - 2, face.Y - 2), FontFace.HersheyPlain, 1.0, new Bgr(Color.LimeGreen).MCvScalar);
+                            ParentForm.SetName("", "");
+                        }
                     }
                     else
                     {
                         CvInvoke.PutText(Frame, "Unknown", new Point(face.X - 2, face.Y - 2), FontFace.HersheyPlain, 1.0, new Bgr(Color.OrangeRed).MCvScalar);
+                        ParentForm.SetName("", "");
                     }
                 }
             }
             catch
             {
             }
-        }
-
-        private string GetEmployee(string id)
-        {
-            try
-            {
-                DBConnection query = new DBConnection();
-                String stmt = "select last_name, first_name from employees where employee_id = @id;";
-                Hashtable attr = new Hashtable();
-                attr.Add("@id", id);
-
-                MySqlDataReader data = (MySqlDataReader)query.Select(stmt, attr);
-
-                if (data != null)
-                {
-                    while (data.Read())
-                    {
-                        return $"{data["last_name"].ToString().Trim()} {data["first_name"].ToString().Trim()}";
-                    }
-                }
-
-                //data.Close();
-                query.Close();
-                return null;
-            }
-            catch (Exception _)
-            {
-                return null;
-            }
-            
         }
 
         public void Dispose()

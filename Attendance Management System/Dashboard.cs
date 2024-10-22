@@ -602,7 +602,7 @@ namespace Attendance_Management_System
             parentForm.DesktopPanel.Controls.Clear();
             parentForm.DesktopPanel.Controls.Add(parentForm.LoginPanel);
             parentForm.LoginPanel.BringToFront();
-            parentForm.verification.Start();
+            //parentForm.verification.Start();
             parentForm.LoginPanel.Visible = true;
         }
 

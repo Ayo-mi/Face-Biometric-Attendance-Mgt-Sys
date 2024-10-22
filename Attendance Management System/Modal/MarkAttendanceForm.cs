@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Attendance_Management_System.Notification;
 
 namespace Attendance_Management_System.Modal
 {
@@ -20,11 +21,80 @@ namespace Attendance_Management_System.Modal
     {
         private FaceRecognitionSystem FaceRecognition { get; set; }
 
+        public Form1 Notifier { get; set; }
+
         public string Id { get; set; }
         public MarkAttendanceForm()
         {
             InitializeComponent();
-            FaceRecognition = new FaceRecognitionSystem();
+            FaceRecognition = new FaceRecognitionSystem(this);
+            Notifier = new Form1();
+
+            Notifier.Show();
+
+            Notifier.Notify.BalloonTipTitle = "Attendance Management System";
+            Notifier.Notify.BalloonTipText = "Application is running in the background scan your fingerprints to sign-in or sign-out";
+        }
+
+        public void SetName(string name, string id)
+        {
+            if (!string.IsNullOrEmpty(name))
+            {
+                if (label1.InvokeRequired)
+                {
+                    label1.Invoke(new MethodInvoker(delegate
+                    {
+                        label1.Text = name;
+                        Id = id;
+                        bunifuButton22.Enabled = true;
+                    }));
+                }
+                else
+                    label1.Text = name;
+            }
+            else
+            {
+                if (label1.InvokeRequired)
+                {
+                    label1.Invoke(new MethodInvoker(delegate
+                    {
+                        label1.Text = "";
+                        //Id = id;
+                        bunifuButton22.Enabled = false;
+                    }));
+                }
+            }
+                
+        }
+
+        private string GetEmployee(string id)
+        {
+            try
+            {
+                DBConnection query = new DBConnection();
+                String stmt = "select last_name, first_name from employees where employee_id = @id;";
+                Hashtable attr = new Hashtable();
+                attr.Add("@id", id);
+
+                MySqlDataReader data = (MySqlDataReader)query.Select(stmt, attr);
+
+                if (data != null)
+                {
+                    while (data.Read())
+                    {
+                        return $"{data["last_name"].ToString().Trim()} {data["first_name"].ToString().Trim()}";
+                    }
+                }
+
+                //data.Close();
+                query.Close();
+                return null;
+            }
+            catch (Exception _)
+            {
+                return null;
+            }
+
         }
 
         private bool IsVerified()
@@ -55,17 +125,17 @@ namespace Attendance_Management_System.Modal
                             isVerified = SignIn(res);
                             if (isVerified)
                             {
-                                notifyIcon1.BalloonTipTitle = "User Signed-in Successful";
-                                notifyIcon1.BalloonTipText = ln + " " + fn + " Signed in at " + DateTime.Now.ToString("h:mm:ss tt");
-                                notifyIcon1.BalloonTipIcon = ToolTipIcon.Info;
-                                notifyIcon1.ShowBalloonTip(2000);
+                                Notifier.Notify.BalloonTipTitle = "User Signed-in Successful";
+                                Notifier.Notify.BalloonTipText = ln + " " + fn + " Signed in at " + DateTime.Now.ToString("h:mm:ss tt");
+                                Notifier.Notify.BalloonTipIcon = ToolTipIcon.Info;
+                                Notifier.Notify.ShowBalloonTip(2000);
                             }
                             else
                             {
-                                notifyIcon1.BalloonTipTitle = "Duplicate Sign-in Today";
-                                notifyIcon1.BalloonTipText = ln + " " + fn + " already Signed in today";
-                                notifyIcon1.BalloonTipIcon = ToolTipIcon.Error;
-                                notifyIcon1.ShowBalloonTip(2000);
+                                Notifier.Notify.BalloonTipTitle = "Duplicate Sign-in Today";
+                                Notifier.Notify.BalloonTipText = ln + " " + fn + " already Signed in today";
+                                Notifier.Notify.BalloonTipIcon = ToolTipIcon.Error;
+                                Notifier.Notify.ShowBalloonTip(2000);
                             }
                             break;
                         case "1":
@@ -73,10 +143,10 @@ namespace Attendance_Management_System.Modal
                             isVerified = SignOut(res);
                             if (isVerified)
                             {
-                                notifyIcon1.BalloonTipTitle = "User Signed-out Successful";
-                                notifyIcon1.BalloonTipText = ln + " " + fn + " Signed out at " + DateTime.Now.ToString("h:mm:ss tt");
-                                notifyIcon1.BalloonTipIcon = ToolTipIcon.Info;
-                                notifyIcon1.ShowBalloonTip(2000);
+                                Notifier.Notify.BalloonTipTitle = "User Signed-out Successful";
+                                Notifier.Notify.BalloonTipText = ln + " " + fn + " Signed out at " + DateTime.Now.ToString("h:mm:ss tt");
+                                Notifier.Notify.BalloonTipIcon = ToolTipIcon.Info;
+                                Notifier.Notify.ShowBalloonTip(2000);
                             }
                             break;
                     }
@@ -227,7 +297,7 @@ namespace Attendance_Management_System.Modal
         
         private void MarkAttendanceForm_Load(object sender, EventArgs e)
         {
-            FaceRecognition.openCamera(bunifuPictureBox1, bunifuPictureBox2 );
+            FaceRecognition.openCamera(bunifuPictureBox1, bunifuPictureBox2, ref label1);
         }
 
         private void MarkAttendanceForm_Shown(object sender, EventArgs e)
@@ -243,7 +313,13 @@ namespace Attendance_Management_System.Modal
 
         private void bunifuButton22_Click(object sender, EventArgs e)
         {
+            var opt = MessageBox.Show($"Are you sure you want to mark attendance for {label1.Text}?", "Mark Attendance",
+            MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
 
+            if (opt == DialogResult.Yes)
+            {
+                IsVerified();
+            }
         }
     }
 }
