@@ -115,7 +115,7 @@ namespace Attendance_Management_System.Biometric
 
         public void StopCamera()
         {
-            camera.Stop();
+            if(camera != null) camera.Stop();
         }
 
         private void Camera_ImageGrabbed(object sender, EventArgs e)
@@ -232,7 +232,8 @@ namespace Attendance_Management_System.Biometric
 
         public void Dispose()
         {
-            camera.Dispose();
+            if(camera != null) camera.Dispose();
+
             GC.SuppressFinalize(this);
         }
 

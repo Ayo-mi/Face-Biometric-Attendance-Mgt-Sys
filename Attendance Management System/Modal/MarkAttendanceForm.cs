@@ -33,7 +33,7 @@ namespace Attendance_Management_System.Modal
             Notifier.Show();
 
             Notifier.Notify.BalloonTipTitle = "Attendance Management System";
-            Notifier.Notify.BalloonTipText = "Application is running in the background scan your fingerprints to sign-in or sign-out";
+            Notifier.Notify.BalloonTipText = "Scan your face to mark attendance, lightening is important for proper recognition";
         }
 
         public void SetName(string name, string id)

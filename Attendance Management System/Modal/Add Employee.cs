@@ -83,7 +83,7 @@ namespace Attendance_Management_System.Modal
             try
             {
                 var old = Directory.GetCurrentDirectory() + $"\\Image\\{Id}.jpg";
-                var newName = $"{Id}%%%{name}";
+                var newName = $"{Id}%{name}";
                 var newFile = Directory.GetCurrentDirectory() + $"\\Image\\{newName}.jpg";
 
                 File.Move(old, newFile);
@@ -153,9 +153,25 @@ namespace Attendance_Management_System.Modal
             FaceRecognition.Save_IMAGE(Id.ToString());
 
             FaceRecognition.StopCamera();
+            FaceRecognition.Dispose();
+
             bunifuButton23.Enabled = false;
             bunifuButton24.Enabled = false;
 
+            FaceRecognition.Dispose();
+        }
+
+        private void fName_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '%')
+            {
+                e.Handled = true; // Prevent the character from being entered into the TextBox
+            }
+        }
+
+        private void Add_Employee_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            FaceRecognition.StopCamera();
             FaceRecognition.Dispose();
         }
     }

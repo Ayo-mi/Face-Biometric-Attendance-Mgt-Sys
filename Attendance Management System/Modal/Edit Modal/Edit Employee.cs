@@ -7,19 +7,23 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace Attendance_Management_System.Modal.Edit_Modal
 {
     public partial class Edit_Employee : Form
     {
-        private Enrollment enrollment;
         Hashtable posi_id = new Hashtable();
         private string id;
+        private string firstName;
+        private string lastName;
         private string posId;
+
         private FaceRecognitionSystem FaceRecognition { get; set; }
         public Edit_Employee(String id)
         {
@@ -86,7 +90,7 @@ namespace Attendance_Management_System.Modal.Edit_Modal
             }
         }
 
-            private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             String stmt = "SELECT * from employees where employee_id=@id and status=@st limit 1";
             Hashtable attr = new Hashtable();
@@ -104,6 +108,9 @@ namespace Attendance_Management_System.Modal.Edit_Modal
                 {
                     fName.Text = data["first_name"].ToString();
                     lName.Text = data["last_name"].ToString();
+
+                    firstName = data["first_name"].ToString();
+                    lastName = data["last_name"].ToString();
                     //emId.Text = data["employee_id"].ToString();
                     getPositions(posId);
                 }));
@@ -115,6 +122,22 @@ namespace Attendance_Management_System.Modal.Edit_Modal
         {
             if (!backgroundWorker1.IsBusy)
                 backgroundWorker1.RunWorkerAsync();
+        }
+
+        private void RenameFile(string name)
+        {
+            try
+            {
+                var old = Directory.GetCurrentDirectory() + $"\\Image\\{id}%{firstName} {lastName}.jpg";
+                var newName = $"{id}%{name}";
+                var newFile = Directory.GetCurrentDirectory() + $"\\Image\\{newName}.jpg";
+
+                File.Move(old, newFile);
+            }
+            catch (Exception _)
+            {
+
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -149,7 +172,7 @@ namespace Attendance_Management_System.Modal.Edit_Modal
                         stmt = "Update employees set first_name=@fn, last_name=@ln, fingerprint=@fp, employee_id=@id, position_id=@po where employee_id=@id;";
                         
                         byte[] sample = null;
-                        enrollment.Enrollerr.Template.Serialize(ref sample);
+                        //enrollment.Enrollerr.Template.Serialize(ref sample);
 
                         attr.Add("@id", id);
                         attr.Add("@fn", fn);
@@ -170,6 +193,8 @@ namespace Attendance_Management_System.Modal.Edit_Modal
                     prompt.Show(this, "Employee data updated successfully",
                        BunifuSnackbar.MessageTypes.Success, 1000, "",
                        BunifuSnackbar.Positions.TopCenter, BunifuSnackbar.Hosts.FormOwner);
+
+                    RenameFile($"{fn} {ln}");
                 }
                 else
                 {
@@ -222,11 +247,19 @@ namespace Attendance_Management_System.Modal.Edit_Modal
 
         private void bunifuButton24_Click(object sender, EventArgs e)
         {
-            FaceRecognition.Save_IMAGE(id);
+            FaceRecognition.Save_IMAGE($"{id}%{firstName} {lastName}");
 
             FaceRecognition.StopCamera();
+            FaceRecognition.Dispose();
+
             bunifuButton23.Enabled = false;
             bunifuButton24.Enabled = false;
+        }
+
+        private void Edit_Employee_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            FaceRecognition.StopCamera();
+            FaceRecognition.Dispose();
         }
     }
 }
